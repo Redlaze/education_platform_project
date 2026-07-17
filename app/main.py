@@ -9,7 +9,7 @@ from app.core.database import init_models
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_models()
+    # await init_models()
     yield
 
 

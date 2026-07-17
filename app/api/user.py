@@ -20,6 +20,7 @@ async def create_student(user: CreateUserSchema, session: session_dep):
         email=user.email,
         password=user.password,
         age=user.age,
+        role=user.role,
     )
     session.add(new_user)
     try:

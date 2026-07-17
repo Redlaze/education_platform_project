@@ -1,6 +1,8 @@
-from typing import Optional
+from typing import Literal
 
 from pydantic import BaseModel, EmailStr
+
+from app.models.user import UserRoleEnum
 
 
 class CreateUserSchema(BaseModel):
@@ -10,6 +12,11 @@ class CreateUserSchema(BaseModel):
     email: EmailStr
     password: str
     age: int
+    role: Literal[
+        UserRoleEnum.ADMIN,
+        UserRoleEnum.STUDENT,
+        UserRoleEnum.TEACHER,
+    ]
 
 
 class UserSchema(CreateUserSchema):
@@ -23,3 +30,8 @@ class UserUpdateSchema(BaseModel):
     email: EmailStr | None = None
     password: str | None = None
     age: int | None = None
+    role: Literal[
+        UserRoleEnum.ADMIN,
+        UserRoleEnum.STUDENT,
+        UserRoleEnum.TEACHER,
+    ] | None
