@@ -35,3 +35,8 @@ class UserUpdateSchema(BaseModel):
         UserRoleEnum.STUDENT,
         UserRoleEnum.TEACHER,
     ] | None
+
+
+class UserAuthSchema(BaseModel):
+    email: EmailStr
+    password: str
