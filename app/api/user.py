@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from starlette import status
+
+from app.core.auth import current_user_dep
 from app.core.database import session_dep
 from app.models import User
 from app.schemas.user import CreateUserSchema, UserSchema, UserUpdateSchema
@@ -12,8 +14,17 @@ router = APIRouter(
 
 
 @router.post('/create', response_model=UserSchema)
-async def create_student(user: CreateUserSchema, session: session_dep):
+async def create_user(user: CreateUserSchema, session: session_dep):
     """Создает нового пользователя."""
+
+
+    stmt = select(User).where(
+        User.email == user.email,
+    )
+    find_user = await session.scalar(stmt)
+
+    if find_user:
+        raise HTTPException(status_code=400, detail='Такой пользователь уже существует')
 
     new_user = User(
         name=user.name,
@@ -23,18 +34,21 @@ async def create_student(user: CreateUserSchema, session: session_dep):
         role=user.role,
     )
     session.add(new_user)
-    try:
-        await session.commit()
-    except IntegrityError:
-        raise HTTPException(status_code=400, detail='Такой пользователь уже существует')
+    await session.commit()
     await session.refresh(new_user)
 
     return new_user
 
 
 @router.get('/get', response_model=UserSchema)
-async def get_user(email: str, session: session_dep):
+async def get_user(email: str, session: session_dep, current_user: current_user_dep):
     """Получает пользователя"""
+
+    if current_user.role != 'admin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Не достаточно прав.'
+        )
 
     stmt = select(User).where(
         User.email == email,
@@ -48,7 +62,19 @@ async def get_user(email: str, session: session_dep):
 
 
 @router.patch('/update', response_model=UserSchema)
-async def update_user(user_id: int, user_data: UserUpdateSchema, session: session_dep):
+async def update_user(
+    user_id: int,
+    user_data: UserUpdateSchema,
+    session: session_dep,
+    current_user: current_user_dep,
+):
+    if current_user.role != 'admin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Не достаточно прав.'
+        )
+
+
     user = await session.get(User, user_id)
 
     if not user:
@@ -66,7 +92,13 @@ async def update_user(user_id: int, user_data: UserUpdateSchema, session: sessio
 
 
 @router.delete('/delete')
-async def delete_user(user_id: int, session: session_dep):
+async def delete_user(user_id: int, session: session_dep, current_user: current_user_dep):
+    if current_user.role != 'admin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Не достаточно прав.'
+        )
+
     user = await session.get(User, user_id)
 
     if not user:
