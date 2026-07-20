@@ -3,6 +3,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 from app.models import CourseStatusEnum
+from app.schemas.teacher import TeacherSchema
 
 
 class CreateCourseSchema(BaseModel):
@@ -14,11 +15,12 @@ class CreateCourseSchema(BaseModel):
         CourseStatusEnum.ARCHIVED,
         CourseStatusEnum.PUBLISHED,
     ] = CourseStatusEnum.DRAFT
+    teacher_id: int
 
 
 class CourseSchema(CreateCourseSchema):
     id: int
-    teacher_id: int | None
+    teacher: TeacherSchema
 
 
 class StudentSchema(BaseModel):
