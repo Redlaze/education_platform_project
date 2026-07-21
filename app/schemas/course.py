@@ -27,3 +27,14 @@ class StudentSchema(BaseModel):
     id: int
     user_id: int
     course_id: int
+
+
+class CreateLessonSchema(BaseModel):
+    content: str
+    assignment: str
+    number: int
+
+
+class LessonSchema(CreateLessonSchema):
+    id: int
+    course: CourseSchema

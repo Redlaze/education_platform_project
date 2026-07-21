@@ -1,7 +1,9 @@
 import enum
+from datetime import datetime
+
 from typing_extensions import TYPE_CHECKING
 
-from sqlalchemy import String, ForeignKey, Enum
+from sqlalchemy import String, ForeignKey, Enum, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models import Base
@@ -53,3 +55,25 @@ class Course(Base):
         cascade="all, delete-orphan",
     )
     status: Mapped[CourseStatusEnum] = mapped_column(Enum(CourseStatusEnum), default=CourseStatusEnum.DRAFT)
+    lessons: Mapped[list['Lesson']] = relationship(
+        'Lesson',
+        back_populates='course',
+        cascade='all, delete-orphan',
+        lazy='joined',
+    )
+
+
+class Lesson(Base):
+    __tablename__ = 'lessons'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    content: Mapped[Text] = mapped_column(Text, nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, default=datetime.now)
+    course_id: Mapped[int] = mapped_column(ForeignKey('courses.id'))
+    course: Mapped['Course'] = relationship(
+        'Course',
+        back_populates='lessons',
+        lazy='joined',
+    )
+    assignment: Mapped[Text] = mapped_column(Text, nullable=True)
+    number: Mapped[int] = mapped_column(unique=True, nullable=False)

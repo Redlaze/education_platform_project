@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi import Query
 from sqlalchemy import select
 from starlette import status
 
@@ -64,14 +65,19 @@ async def delete_user(user_id: int, session: session_dep, current_user: current_
 
 
 @router.get('/users/', response_model=list[UserSchema])
-async def get_all_users(session:session_dep, current_user: current_user_dep):
+async def get_all_users(
+        session:session_dep,
+        current_user: current_user_dep,
+        size: int = Query(ge=1, le=100, default=10),
+        page: int = Query(ge=0, default=0)
+):
     if current_user.role != 'admin':
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='Не достаточно прав.'
         )
 
-    stmt = select(User)
+    stmt = select(User).limit(size).offset(page*size)
     return await session.scalars(stmt)
 
 
