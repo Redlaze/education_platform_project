@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from app.models import CourseStatusEnum
 from app.schemas.teacher import TeacherSchema
+from app.schemas.user import UserSchema
 
 
 class CreateCourseSchema(BaseModel):
@@ -25,11 +26,12 @@ class CourseSchema(CreateCourseSchema):
 
 class StudentSchema(BaseModel):
     id: int
-    user_id: int
-    course_id: int
+    user_id: UserSchema
+    course_id: CourseSchema
 
 
 class CreateLessonSchema(BaseModel):
+    name: str
     content: str
     assignment: str
     number: int
@@ -38,3 +40,10 @@ class CreateLessonSchema(BaseModel):
 class LessonSchema(CreateLessonSchema):
     id: int
     course: CourseSchema
+
+
+class StudentLessonCompleteSchema(BaseModel):
+    id: int
+    student: UserSchema
+    lesson: LessonSchema
+    is_completed: bool

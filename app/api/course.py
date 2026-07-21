@@ -24,9 +24,9 @@ async def get_all_courses(
     return courses
 
 
-@router.get('/{id}', response_model=CourseSchema)
-async def get_one_course(id: int, session: session_dep):
-    course = await session.get(Course, id)
+@router.get('/{course_id}', response_model=CourseSchema)
+async def get_one_course(course_id: int, session: session_dep):
+    course = await session.get(Course, course_id)
 
     if not course:
         raise HTTPException(
@@ -37,9 +37,9 @@ async def get_one_course(id: int, session: session_dep):
     return course
 
 
-@router.post('/{id}/lessons', response_model=LessonSchema)
+@router.post('/{course_id}/lessons', response_model=LessonSchema)
 async def create_lesson(
-    id: int, lesson_data: CreateLessonSchema,
+    course_id: int, lesson_data: CreateLessonSchema,
     session: session_dep,
     current_user: current_user_dep,
 ):
@@ -49,7 +49,7 @@ async def create_lesson(
             detail='Не достаточно прав.'
         )
 
-    course = await session.get(Course, id)
+    course = await session.get(Course, course_id)
 
     if not course:
         raise HTTPException(
