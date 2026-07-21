@@ -26,8 +26,8 @@ class CourseSchema(CreateCourseSchema):
 
 class StudentSchema(BaseModel):
     id: int
-    user_id: UserSchema
-    course_id: CourseSchema
+    user: UserSchema
+    course: CourseSchema
 
 
 class CreateLessonSchema(BaseModel):

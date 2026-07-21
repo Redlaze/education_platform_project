@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from starlette import status
 
 from app.core.auth import current_user_dep
 from app.core.database import session_dep
 from app.models import Student, Course, Lesson
 from app.models.course import StudentLessonComplete
-from app.schemas.course import StudentSchema, StudentLessonCompleteSchema
+from app.schemas.course import StudentSchema, LessonSchema
 
 router = APIRouter(prefix='/student', tags=['students'])
 
@@ -50,6 +51,30 @@ async def get_my_all_courses(session: session_dep, current_user: current_user_de
     courses = await session.scalars(stmt)
 
     return courses
+
+
+@router.get('/course/{course_id}/lessons', response_model=list[LessonSchema])
+async def get_my_course_lessons(course_id: int, session: session_dep, current_user: current_user_dep):
+    student_query = await session.execute(
+        select(Student)
+        .where(
+            Student.user_id == current_user.id,
+            Student.course_id == course_id,
+        )
+        .options(
+            joinedload(Student.course)
+            .joinedload(Course.lessons),
+        )
+    )
+    student = student_query.unique().scalar_one()
+
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'Вы не записаны на курс "{student.course.name}"'
+        )
+
+    return student.course.lessons
 
 
 @router.post('/lesson/{lesson_id}/complete')
